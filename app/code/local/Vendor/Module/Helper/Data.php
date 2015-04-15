@@ -3,13 +3,20 @@ class Vendor_Module_Helper_Data extends Mage_Core_Helper_Abstract
 {
     public function getShippingStatuses()
     {
-        $cariers = Mage::getSingleton('shipping/config')->getActiveCarriers();
+        $collection = Mage::getModel('sales/order')->getCollection();
+        $collection
+            ->getSelect()
+            ->reset(Zend_Db_Select::COLUMNS)
+            ->columns('shipping_description')
+            ->group('shipping_description')
+            ->where('`shipping_description` IS NOT NULL');
+        $collection->load();
 
-        foreach ($cariers as $carrier) {
-            $code = $carrier->getId();
-            $title = Mage::getStoreConfig("carriers/".$code."/title") . ' - ' . Mage::getStoreConfig("carriers/".$code."/name");
-            $options[$title] = $title;
+        foreach ($collection as $shippingDescr) {
+            $descr = $shippingDescr->getShippingDescription();
+            $options[$descr] = $descr;
         }
+
         return $options;
     }
 }
